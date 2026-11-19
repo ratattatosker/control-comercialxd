@@ -1,0 +1,53 @@
+workflows:
+  control-comercial-android-apk:
+    name: Control Comercial - APK Android
+    instance_type: mac_mini_m2
+    max_build_duration: 120
+
+    environment:
+      flutter: stable
+      java: 17
+
+    cache:
+      cache_paths:
+        - $HOME/.pub-cache
+        - $HOME/.gradle/caches
+
+    scripts:
+      - name: Verify package uploaded to GitHub
+        script: |
+          set -euo pipefail
+          test -s "$CM_BUILD_DIR/Control_Comercial_Codemagic_Kit_v2.zip"
+          echo "Build kit found in repository root."
+
+      - name: Extract build kit and Flutter source
+        script: |
+          set -euo pipefail
+          KIT_DIR="$CM_BUILD_DIR/kit"
+          SOURCE_DIR="$CM_BUILD_DIR/source"
+          mkdir -p "$KIT_DIR" "$SOURCE_DIR"
+          unzip -q "$CM_BUILD_DIR/Control_Comercial_Codemagic_Kit_v2.zip" -d "$KIT_DIR"
+          APP_ZIP="$KIT_DIR/Control_Comercial_Android_v0.9.1_Codemagic.zip"
+          test -s "$APP_ZIP"
+          unzip -q "$APP_ZIP" -d "$SOURCE_DIR"
+          APP_DIR="$SOURCE_DIR/Control_Comercial_Android_v0.9.1"
+          test -f "$APP_DIR/pubspec.yaml"
+          test -f "$APP_DIR/tool/bootstrap_android.sh"
+          echo "Flutter project extracted successfully."
+
+      - name: Generate Android, run checks and build release APK
+        script: |
+          set -euo pipefail
+          APP_DIR="$CM_BUILD_DIR/source/Control_Comercial_Android_v0.9.1"
+          cd "$APP_DIR"
+          bash tool/bootstrap_android.sh --build-apk
+
+      - name: Verify APK
+        script: |
+          set -euo pipefail
+          APK="$CM_BUILD_DIR/source/Control_Comercial_Android_v0.9.1/build/app/outputs/flutter-apk/app-release.apk"
+          test -s "$APK"
+          ls -lh "$APK"
+
+    artifacts:
+      - source/Control_Comercial_Android_v0.9.1/build/app/outputs/flutter-apk/app-release.apk
