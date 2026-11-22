@@ -96,7 +96,7 @@ workflows:
           bash -n "$APP_DIR/tool/bootstrap_android.sh"
           python3 -m py_compile "$APP_DIR/tool/ensure_android_sdk.py" "$APP_DIR/tool/set_android_app_name.py"
           grep -Fq 'python3 tool/ensure_android_sdk.py "$ANDROID_SDK_DIR"' "$APP_DIR/tool/bootstrap_android.sh"
-          grep -Fq 'version: 0.9.6+24' "$APP_DIR/pubspec.yaml"
+          grep -Fq 'version: 0.9.6+25' "$APP_DIR/pubspec.yaml"
           grep -Fq "static const _catalogVersion = '5'" "$APP_DIR/lib/data/catalog_seeder.dart"
           grep -Fq 'Future<void> deleteProduct(String productId)' "$APP_DIR/lib/data/app_repository.dart"
           grep -Fq 'is_deleted = 0' "$APP_DIR/lib/data/app_repository.dart"
@@ -105,6 +105,10 @@ workflows:
           grep -Fq 'int get schemaVersion => 5' "$APP_DIR/lib/data/app_database.dart"
           test -s "$APP_DIR/lib/ui/draft_text_controller.dart"
           test -s "$APP_DIR/lib/ui/cycle_actions.dart"
+          if grep -Fq "import 'package:business_core/business_core.dart';" "$APP_DIR/lib/ui/cycle_actions.dart"; then
+            echo "El archivo cycle_actions.dart contiene un import no utilizado que bloqueará flutter analyze." >&2
+            exit 1
+          fi
           test -s "$APP_DIR/lib/ui/screens/restock_screen.dart"
           grep -Fq 'class DraftTextController extends TextEditingController' "$APP_DIR/lib/ui/draft_text_controller.dart"
           grep -Fq 'Future<void> updateCycleStartDate(' "$APP_DIR/lib/data/app_repository.dart"
