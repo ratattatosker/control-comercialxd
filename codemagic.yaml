@@ -56,6 +56,7 @@ workflows:
           test -s "$APP_DIR/lib/ui/screens/catalog_screen.dart"
           test -s "$APP_DIR/lib/ui/screens/first_cycle_screen.dart"
           test -s "$APP_DIR/tool/bootstrap_android.sh"
+          test -s "$APP_DIR/tool/ensure_android_sdk.py"
           test -s "$APP_DIR/tool/bootstrap_android.ps1"
           test -s "$APP_DIR/tool/check_dart_delimiters.py"
           test -s "$APP_DIR/tool/verify_reference_rules.py"
@@ -85,7 +86,9 @@ workflows:
             exit 1
           fi
           bash -n "$APP_DIR/tool/bootstrap_android.sh"
-          grep -Fq 'version: 0.9.6+15' "$APP_DIR/pubspec.yaml"
+          python3 -m py_compile "$APP_DIR/tool/ensure_android_sdk.py"
+          grep -Fq 'python3 tool/ensure_android_sdk.py "$ANDROID_SDK_DIR"' "$APP_DIR/tool/bootstrap_android.sh"
+          grep -Fq 'version: 0.9.6+16' "$APP_DIR/pubspec.yaml"
           grep -Fq "static const _catalogVersion = '5'" "$APP_DIR/lib/data/catalog_seeder.dart"
           grep -Fq 'Future<void> deleteProduct(String productId)' "$APP_DIR/lib/data/app_repository.dart"
           grep -Fq 'is_deleted = 0' "$APP_DIR/lib/data/app_repository.dart"
