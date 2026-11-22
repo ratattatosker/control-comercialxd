@@ -76,9 +76,10 @@ workflows:
           grep -Fq 'Cafetería Rubí' "$APP_DIR/tool/set_android_app_name.py"
           grep -Fq 'tool/set_android_app_name.py' "$APP_DIR/tool/bootstrap_android.sh"
           grep -Fq 'Cafetería Rubí' "$APP_DIR/tool/bootstrap_android.ps1"
-          grep -Fq 'test: 1.28.0' "$APP_DIR/pubspec.yaml"
+          grep -Fq 'test: 1.32.0' "$APP_DIR/pubspec.yaml"
           grep -Fq 'flutter_lints: 6.0.0' "$APP_DIR/pubspec.yaml"
-          grep -Fq 'test: 1.28.0' "$APP_DIR/packages/business_core/pubspec.yaml"
+          grep -Fq 'test: 1.32.0' "$APP_DIR/packages/business_core/pubspec.yaml"
+          grep -Fq "sdk: '>=3.11.0 <4.0.0'" "$APP_DIR/packages/business_core/pubspec.yaml"
           grep -Fq 'dart fix --apply --code=curly_braces_in_flow_control_structures' "$APP_DIR/tool/bootstrap_android.sh"
           grep -Fq 'flutter analyze --fatal-warnings' "$APP_DIR/tool/bootstrap_android.sh"
           grep -Fq 'dart analyze --fatal-warnings' "$APP_DIR/tool/bootstrap_android.sh"
@@ -95,7 +96,7 @@ workflows:
           bash -n "$APP_DIR/tool/bootstrap_android.sh"
           python3 -m py_compile "$APP_DIR/tool/ensure_android_sdk.py" "$APP_DIR/tool/set_android_app_name.py"
           grep -Fq 'python3 tool/ensure_android_sdk.py "$ANDROID_SDK_DIR"' "$APP_DIR/tool/bootstrap_android.sh"
-          grep -Fq 'version: 0.9.6+17' "$APP_DIR/pubspec.yaml"
+          grep -Fq 'version: 0.9.6+18' "$APP_DIR/pubspec.yaml"
           grep -Fq "static const _catalogVersion = '5'" "$APP_DIR/lib/data/catalog_seeder.dart"
           grep -Fq 'Future<void> deleteProduct(String productId)' "$APP_DIR/lib/data/app_repository.dart"
           grep -Fq 'is_deleted = 0' "$APP_DIR/lib/data/app_repository.dart"
@@ -131,7 +132,7 @@ workflows:
           print(f'Catálogo inicial válido: {len(products)} artículos; sin límite fijo de cantidad.')
           PY
 
-          echo "Checksums, workflow consistency, Cafetería Rubí app name, Flutter/Dart compatibility, SDK constraints and strict analyzer policy verified."
+          echo "Checksums, workflow consistency, Cafetería Rubí app name, Flutter/Dart compatibility, SDK constraints, test/analyzer compatibility and strict analyzer policy verified."
 
       - name: Generate Android, run checks and build release APK
         script: |
