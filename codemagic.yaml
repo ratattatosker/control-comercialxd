@@ -7,6 +7,8 @@ workflows:
     environment:
       flutter: "3.50.1"
       java: 17
+      android_signing:
+        - cafeteria_rubi_release
 
     cache:
       cache_paths:
