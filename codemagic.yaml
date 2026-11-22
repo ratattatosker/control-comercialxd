@@ -5,35 +5,63 @@ workflows:
     max_build_duration: 120
 
     environment:
-      flutter: 3.50.1
+      flutter: "3.50.1"
       java: 17
 
     cache:
       cache_paths:
         - $HOME/.pub-cache
         - $HOME/.gradle/caches
+        - $HOME/.gradle/wrapper/dists
 
     scripts:
-      - name: Verify package uploaded to GitHub
+      - name: Verify build kit uploaded to GitHub
         script: |
           set -euo pipefail
-          test -s "$CM_BUILD_DIR/Control_Comercial_Codemagic_Kit_v2.zip"
-          echo "Build kit found in repository root."
+          KIT_ARCHIVE="$CM_BUILD_DIR/Control_Comercial_Codemagic_Kit_v2.zip"
+          test -s "$KIT_ARCHIVE"
+          unzip -tq "$KIT_ARCHIVE" >/dev/null
+          echo "Build kit exists and its ZIP integrity check passed."
 
-      - name: Extract build kit and Flutter source
+      - name: Extract and verify build kit and Flutter source
         script: |
           set -euo pipefail
           KIT_DIR="$CM_BUILD_DIR/kit"
           SOURCE_DIR="$CM_BUILD_DIR/source"
           mkdir -p "$KIT_DIR" "$SOURCE_DIR"
           unzip -q "$CM_BUILD_DIR/Control_Comercial_Codemagic_Kit_v2.zip" -d "$KIT_DIR"
+
+          test -s "$KIT_DIR/SHA256SUMS.txt"
+          (
+            cd "$KIT_DIR"
+            shasum -a 256 -c SHA256SUMS.txt
+          )
+
+          if ! cmp -s "$CM_BUILD_DIR/codemagic.yaml" "$KIT_DIR/codemagic.yaml"; then
+            echo "El codemagic.yaml de la raíz no coincide byte por byte con el incluido en el kit." >&2
+            exit 1
+          fi
+
           APP_ZIP="$KIT_DIR/Control_Comercial_Android_v0.9.1_Codemagic.zip"
           test -s "$APP_ZIP"
+          unzip -tq "$APP_ZIP" >/dev/null
           unzip -q "$APP_ZIP" -d "$SOURCE_DIR"
+
           APP_DIR="$SOURCE_DIR/Control_Comercial_Android_v0.9.1"
-          test -f "$APP_DIR/pubspec.yaml"
-          test -f "$APP_DIR/tool/bootstrap_android.sh"
-          echo "Flutter project extracted successfully."
+          test -s "$APP_DIR/pubspec.yaml"
+          test -s "$APP_DIR/analysis_options.yaml"
+          test -s "$APP_DIR/tool/bootstrap_android.sh"
+          test -s "$APP_DIR/tool/bootstrap_android.ps1"
+          test -s "$APP_DIR/tool/verify_reference_rules.py"
+          test -s "$APP_DIR/packages/business_core/test/core_logic_test.dart"
+
+          grep -Fq 'flutter analyze --no-fatal-infos --fatal-warnings' "$APP_DIR/tool/bootstrap_android.sh"
+          grep -Fq 'dart analyze --fatal-warnings' "$APP_DIR/tool/bootstrap_android.sh"
+          grep -Fq "@('analyze', '--no-fatal-infos', '--fatal-warnings')" "$APP_DIR/tool/bootstrap_android.ps1"
+          grep -Fq "@('analyze', '--fatal-warnings')" "$APP_DIR/tool/bootstrap_android.ps1"
+          grep -Fq 'flutter: "3.50.1"' "$KIT_DIR/codemagic.yaml"
+
+          echo "Checksums, workflow consistency, Flutter sources and analyzer policy verified."
 
       - name: Generate Android, run checks and build release APK
         script: |
@@ -51,3 +79,5 @@ workflows:
 
     artifacts:
       - source/Control_Comercial_Android_v0.9.1/build/app/outputs/flutter-apk/app-release.apk
+      - source/Control_Comercial_Android_v0.9.1/pubspec.lock
+      - source/Control_Comercial_Android_v0.9.1/packages/business_core/pubspec.lock
