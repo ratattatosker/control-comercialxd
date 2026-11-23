@@ -85,10 +85,9 @@ workflows:
           grep -Fq 'flutter_lints: 6.0.0' "$APP_DIR/packages/business_core/pubspec.yaml"
           grep -Fq "sdk: '>=3.11.0 <4.0.0'" "$APP_DIR/packages/business_core/pubspec.yaml"
           grep -Fq 'dart fix --apply --code=curly_braces_in_flow_control_structures' "$APP_DIR/tool/bootstrap_android.sh"
-          grep -Fq 'flutter analyze --fatal-warnings --no-fatal-infos' "$APP_DIR/tool/bootstrap_android.sh"
           grep -Fq 'dart analyze --fatal-warnings' "$APP_DIR/tool/bootstrap_android.sh"
           grep -Fq "'fix', '--apply', '--code=curly_braces_in_flow_control_structures'" "$APP_DIR/tool/bootstrap_android.ps1"
-          grep -Fq "@('analyze', '--fatal-warnings', '--no-fatal-infos')" "$APP_DIR/tool/bootstrap_android.ps1"
+          grep -Fq "@('analyze', '--fatal-warnings')" "$APP_DIR/tool/bootstrap_android.ps1"
           if grep -F -q -- '--fatal-infos' "$APP_DIR/tool/bootstrap_android.sh" "$APP_DIR/tool/bootstrap_android.ps1"; then
             echo "No se debe bloquear CI por diagnósticos informativos; warnings y errores sí son fatales." >&2
             exit 1
@@ -200,7 +199,7 @@ workflows:
           print(f'Catálogo inicial válido: {len(products)} artículos; conteo final válido: {len(final_inventory)} nombres.')
           PY
 
-          echo "Checksums, workflow consistency, Cafetería Rubí app name, Flutter/Dart compatibility, SDK constraints, test/analyzer compatibility and Flutter analyzer info policy (nonfatal infos; fatal warnings/errors) verified."
+          echo "Checksums, workflow consistency, Cafetería Rubí app name, Flutter/Dart compatibility, SDK constraints, test/analyzer compatibility and Dart analyzer info policy (nonfatal infos; fatal warnings/errors) verified."
 
       - name: Generate Android, run checks and build release APK
         script: |
