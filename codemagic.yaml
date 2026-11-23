@@ -100,8 +100,9 @@ workflows:
           bash -n "$APP_DIR/tool/bootstrap_android.sh"
           python3 -m py_compile "$APP_DIR/tool/ensure_android_sdk.py" "$APP_DIR/tool/set_android_app_name.py" "$APP_DIR/tool/verify_android_application_id.py"
           grep -Fq 'python3 tool/ensure_android_sdk.py "$ANDROID_SDK_DIR"' "$APP_DIR/tool/bootstrap_android.sh"
-          grep -Fq 'version: 0.9.6+26' "$APP_DIR/pubspec.yaml"
-          grep -Fq "static const _catalogVersion = '5'" "$APP_DIR/lib/data/catalog_seeder.dart"
+          grep -Fq 'version: 0.9.6+27' "$APP_DIR/pubspec.yaml"
+          grep -Fq "static const _catalogVersion = '6'" "$APP_DIR/lib/data/catalog_seeder.dart"
+          grep -Fq 'Future<void> _seedInitialInventoryCycle(' "$APP_DIR/lib/data/catalog_seeder.dart"
           grep -Fq 'Future<void> deleteProduct(String productId)' "$APP_DIR/lib/data/app_repository.dart"
           grep -Fq 'is_deleted = 0' "$APP_DIR/lib/data/app_repository.dart"
           grep -Fq 'getCycleStartInventoryDefaults()' "$APP_DIR/lib/ui/screens/first_cycle_screen.dart"
@@ -179,7 +180,24 @@ workflows:
                   raise SystemExit(f"Cantidad inicial no válida para {item.get('name', '?')}.")
               if not quantity.is_finite() or quantity < 0:
                   raise SystemExit(f"Cantidad inicial no válida para {item['name']}.")
-          print(f'Catálogo inicial válido: {len(products)} artículos; sin límite fijo de cantidad.')
+          cycle = data.get('initialCycle')
+          if not isinstance(cycle, dict) or cycle.get('startDate') != '2026-11-19' or cycle.get('closingInventoryDate') != '2026-11-22':
+              raise SystemExit('Faltan las fechas del ciclo histórico 19–22 de noviembre de 2026.')
+          final_inventory = cycle.get('finalInventory')
+          if not isinstance(final_inventory, dict) or not final_inventory:
+              raise SystemExit('Falta el conteo final del día 22.')
+          if not set(final_inventory).issubset(set(names)):
+              raise SystemExit('El inventario final contiene productos que no están en el catálogo.')
+          if cycle.get('finalInventoryMissingProductsDefault') != '0':
+              raise SystemExit('Los productos omitidos del conteo final deben quedar en cero.')
+          for name, raw in final_inventory.items():
+              try:
+                  quantity = Decimal(str(raw))
+              except InvalidOperation:
+                  raise SystemExit(f'Cantidad final no válida para {name}.')
+              if not quantity.is_finite() or quantity < 0:
+                  raise SystemExit(f'Cantidad final no válida para {name}.')
+          print(f'Catálogo inicial válido: {len(products)} artículos; conteo final válido: {len(final_inventory)} nombres.')
           PY
 
           echo "Checksums, workflow consistency, Cafetería Rubí app name, Flutter/Dart compatibility, SDK constraints, test/analyzer compatibility and Flutter analyzer info policy (nonfatal infos; fatal warnings/errors) verified."
