@@ -105,7 +105,7 @@ workflows:
           bash -n "$APP_DIR/tool/bootstrap_android.sh"
           python3 -m py_compile "$APP_DIR/tool/ensure_android_sdk.py" "$APP_DIR/tool/set_android_app_name.py" "$APP_DIR/tool/verify_android_application_id.py"
           grep -Fq 'python3 tool/ensure_android_sdk.py "$ANDROID_SDK_DIR"' "$APP_DIR/tool/bootstrap_android.sh"
-          grep -Fq 'version: 0.9.6+34' "$APP_DIR/pubspec.yaml"
+          grep -Fq 'version: 0.9.6+35' "$APP_DIR/pubspec.yaml"
           grep -Fq "static const _catalogVersion = '6'" "$APP_DIR/lib/data/catalog_seeder.dart"
           grep -Fq 'Future<void> _seedInitialInventoryCycle(' "$APP_DIR/lib/data/catalog_seeder.dart"
           grep -Fq 'Future<void> deleteProduct(String productId)' "$APP_DIR/lib/data/app_repository.dart"
