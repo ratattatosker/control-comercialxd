@@ -148,7 +148,7 @@ workflows:
           bash -n "$APP_DIR/tool/bootstrap_android.sh"
           python3 -m py_compile "$APP_DIR/tool/ensure_android_sdk.py" "$APP_DIR/tool/set_android_app_name.py" "$APP_DIR/tool/verify_android_application_id.py"
           grep -Fq 'python3 tool/ensure_android_sdk.py "$ANDROID_SDK_DIR"' "$APP_DIR/tool/bootstrap_android.sh"
-          grep -Fq 'version: 0.9.6+45' "$APP_DIR/pubspec.yaml"
+          grep -Fq 'version: 0.9.6+46' "$APP_DIR/pubspec.yaml"
           grep -Fq 'Autocomplete<ProductRecord>' "$APP_DIR/lib/ui/product_picker.dart"
           grep -Fq 'getRecentMovementProductIds' "$APP_DIR/lib/data/app_repository.dart"
           grep -Fq 'bool _mostRecentFirst = true;' "$APP_DIR/lib/ui/screens/turn_editor_screen.dart"
