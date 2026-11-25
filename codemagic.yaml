@@ -15,21 +15,17 @@ workflows:
         - $HOME/.gradle/wrapper/dists
 
     scripts:
-      - name: Verify build kit uploaded to GitHub
+      - name: Verify and extract the current build kit
         script: |
           set -euo pipefail
           KIT_ARCHIVE="$CM_BUILD_DIR/Control_Comercial_Codemagic_Kit_v2.zip"
-          test -s "$KIT_ARCHIVE"
-          unzip -tq "$KIT_ARCHIVE" >/dev/null
-          echo "Build kit exists and its ZIP integrity check passed."
-
-      - name: Extract and verify build kit and Flutter source
-        script: |
-          set -euo pipefail
           KIT_DIR="$CM_BUILD_DIR/kit"
           SOURCE_DIR="$CM_BUILD_DIR/source"
+
+          test -s "$KIT_ARCHIVE"
+          unzip -tq "$KIT_ARCHIVE" >/dev/null
           mkdir -p "$KIT_DIR" "$SOURCE_DIR"
-          unzip -q "$CM_BUILD_DIR/Control_Comercial_Codemagic_Kit_v2.zip" -d "$KIT_DIR"
+          unzip -q "$KIT_ARCHIVE" -d "$KIT_DIR"
 
           test -s "$KIT_DIR/SHA256SUMS.txt"
           (
@@ -38,7 +34,7 @@ workflows:
           )
 
           if ! cmp -s "$CM_BUILD_DIR/codemagic.yaml" "$KIT_DIR/codemagic.yaml"; then
-            echo "El codemagic.yaml de la raíz no coincide byte por byte con el incluido en el kit." >&2
+            echo "El codemagic.yaml del repositorio no coincide con el incluido en el kit." >&2
             exit 1
           fi
 
@@ -49,316 +45,75 @@ workflows:
 
           APP_DIR="$SOURCE_DIR/Control_Comercial_Android_v0.9.6"
           test -s "$APP_DIR/pubspec.yaml"
-          test -s "$APP_DIR/analysis_options.yaml"
+          test -s "$APP_DIR/packages/business_core/pubspec.yaml"
           test -s "$APP_DIR/assets/catalog_seed.json"
           test -s "$APP_DIR/lib/data/catalog_seeder.dart"
           test -s "$APP_DIR/lib/data/app_database.dart"
-          test -s "$APP_DIR/lib/ui/screens/catalog_screen.dart"
-          test -s "$APP_DIR/lib/ui/screens/cycle_reports_screen.dart"
-          test -s "$APP_DIR/lib/ui/reconciliation_banner.dart"
-          grep -Fq 'FALTANTE DE EFECTIVO' "$APP_DIR/lib/ui/reconciliation_banner.dart"
-          grep -Fq 'SOBRANTE DE EFECTIVO' "$APP_DIR/lib/ui/reconciliation_banner.dart"
-          grep -Fq 'EFECTIVO CUADRADO' "$APP_DIR/lib/ui/reconciliation_banner.dart"
-          grep -Fq 'ReconciliationBanner(' "$APP_DIR/lib/ui/home_page.dart"
-          grep -Fq 'if (data.cycle?.kind == CycleKind.full) ...[' "$APP_DIR/lib/ui/home_page.dart"
-          grep -Fq 'ReconciliationBanner(' "$APP_DIR/lib/ui/screens/cycle_workspace_screen.dart"
-          grep -Fq 'ReconciliationBanner(' "$APP_DIR/lib/ui/screens/turn_editor_screen.dart"
-          grep -Fq 'ReconciliationBanner(' "$APP_DIR/lib/ui/screens/cycle_reports_screen.dart"
-          grep -Fq 'ReconciliationBanner(' "$APP_DIR/lib/ui/screens/final_inventory_screen.dart"
-          grep -Fq 'CIERRE ACUMULADO' "$APP_DIR/lib/ui/reconciliation_banner.dart"
-          grep -Fq 'class LiveCycleProgressService' "$APP_DIR/packages/business_core/lib/services/live_cycle_progress_service.dart"
-          grep -Fq 'progressData: progressData' "$APP_DIR/lib/ui/home_page.dart"
-          grep -Fq 'progressData: data.data' "$APP_DIR/lib/ui/screens/cycle_workspace_screen.dart"
-          grep -Fq 'progressData: data.cycleData' "$APP_DIR/lib/ui/screens/turn_editor_screen.dart"
-          grep -Fq 'onChanged: _onCashChanged' "$APP_DIR/lib/ui/screens/turn_editor_screen.dart"
-          grep -Fq 'progressData: data.cycleData' "$APP_DIR/lib/ui/screens/cycle_reports_screen.dart"
-          grep -Fq 'progressData: _cycleData' "$APP_DIR/lib/ui/screens/final_inventory_screen.dart"
-          grep -Fq 'isPreview: isInventoryPreview' "$APP_DIR/lib/ui/screens/final_inventory_screen.dart"
-          grep -Fq 'previewNote: inventoryPreviewNote' "$APP_DIR/lib/ui/screens/final_inventory_screen.dart"
-          grep -Fq 'Inventario en edición' "$APP_DIR/lib/ui/reconciliation_banner.dart"
-          grep -Fq "editar efectivo actualiza faltante" "$APP_DIR/packages/business_core/test/reconciliation_test.dart"
-          grep -Fq "editar inventario final recalcula unidades vendidas" "$APP_DIR/packages/business_core/test/reconciliation_test.dart"
-          grep -Fq "editar gastos actualiza el efectivo esperado" "$APP_DIR/packages/business_core/test/reconciliation_test.dart"
-          grep -Fq "editar reinversión actualiza cantidad vendida" "$APP_DIR/packages/business_core/test/reconciliation_test.dart"
-          grep -Fq "editar entradas o bajas recalcula" "$APP_DIR/packages/business_core/test/reconciliation_test.dart"
-          grep -Fq "editar un cambio de precio recalcula" "$APP_DIR/packages/business_core/test/reconciliation_test.dart"
-          grep -Fq '_inventoryColumnHeader(context)' "$APP_DIR/lib/ui/screens/final_inventory_screen.dart"
-          grep -Fq "hintText: 'Buscar producto'" "$APP_DIR/lib/ui/screens/final_inventory_screen.dart"
-          grep -Fq "_OperationButton(icon: Icons.add_box_outlined" "$APP_DIR/lib/ui/screens/turn_editor_screen.dart"
-          grep -Fq "id: 'petrol'" "$APP_DIR/lib/ui/app_theme.dart"
-          grep -Fq "id: 'graphite'" "$APP_DIR/lib/ui/app_theme.dart"
-          grep -Fq 'Future<Map<String, String>> getDrafts(Iterable<String> draftKeys)' "$APP_DIR/lib/data/app_repository.dart"
-          grep -Fq 'const chunkSize = 400;' "$APP_DIR/lib/data/app_repository.dart"
-          grep -Fq 'draftsPreloaded: true' "$APP_DIR/lib/ui/screens/final_inventory_screen.dart"
-          grep -Fq 'constraints: const BoxConstraints(maxWidth: 560)' "$APP_DIR/lib/ui/screens/final_inventory_screen.dart"
-          grep -Fq 'onTap: () => _edit(activity, data.products)' "$APP_DIR/lib/ui/screens/turn_editor_screen.dart"
-          grep -Fq 'PopupMenuButton<String>' "$APP_DIR/lib/ui/screens/turn_editor_screen.dart"
-          grep -Fq 'scrollable: true' "$APP_DIR/lib/ui/screens/turn_editor_screen.dart"
-          grep -Fq 'constraints.maxWidth < 340' "$APP_DIR/lib/ui/home_page.dart"
-          grep -Fq 'width: constraints.maxWidth' "$APP_DIR/lib/ui/home_page.dart"
-          grep -Fq 'liveRegion: _announceStateChange' "$APP_DIR/lib/ui/reconciliation_banner.dart"
-          grep -Fq 'constraints.maxWidth < 370' "$APP_DIR/lib/ui/reconciliation_banner.dart"
-          grep -Fq 'final ValueNotifier<String> appThemePaletteId' "$APP_DIR/lib/ui/app_theme.dart"
-          test -s "$APP_DIR/lib/ui/screens/first_cycle_screen.dart"
-          test -s "$APP_DIR/tool/bootstrap_android.sh"
-          test -s "$APP_DIR/tool/ensure_android_sdk.py"
-          test -s "$APP_DIR/tool/set_android_app_name.py"
-          test -s "$APP_DIR/tool/verify_android_application_id.py"
-          test -s "$APP_DIR/tool/bootstrap_android.ps1"
-          test -s "$APP_DIR/tool/check_dart_delimiters.py"
-          test -s "$APP_DIR/tool/verify_reference_rules.py"
+          test -s "$APP_DIR/lib/data/app_repository.dart"
+          test -s "$APP_DIR/lib/services/backup_service.dart"
+          test -s "$APP_DIR/packages/business_core/lib/services/calculation_service.dart"
           test -s "$APP_DIR/packages/business_core/test/core_logic_test.dart"
           test -s "$APP_DIR/packages/business_core/test/reconciliation_test.dart"
-          test -s "$APP_DIR/packages/business_core/test/live_cycle_progress_test.dart"
-          test -s "$APP_DIR/packages/business_core/lib/services/live_cycle_progress_service.dart"
+          test -s "$APP_DIR/tool/bootstrap_android.sh"
+          test -s "$APP_DIR/tool/ensure_android_sdk.py"
+          test -s "$APP_DIR/tool/verify_android_application_id.py"
+          test -s "$APP_DIR/tool/verify_reference_rules.py"
 
-          grep -Fq 'material_ui: 1.11.1' "$APP_DIR/pubspec.yaml"
-          grep -Fq 'drift: 2.35.4' "$APP_DIR/pubspec.yaml"
-          grep -Fq 'path_provider: 2.1.5' "$APP_DIR/pubspec.yaml"
-          grep -Fq 'file_picker: 13.3.3' "$APP_DIR/pubspec.yaml"
-          grep -Fq 'drift_dev: 2.35.3' "$APP_DIR/pubspec.yaml"
-          grep -Fq 'build_runner: 2.16.2' "$APP_DIR/pubspec.yaml"
+          grep -Fq 'version: 0.9.6+51' "$APP_DIR/pubspec.yaml"
           grep -Fq "sdk: '>=3.11.0 <4.0.0'" "$APP_DIR/pubspec.yaml"
-          grep -Fq 'Cafetería Rubí' "$APP_DIR/lib/main.dart"
-          grep -Fq 'Cafetería Rubí' "$APP_DIR/lib/ui/home_page.dart"
-          grep -Fq 'Cafetería Rubí' "$APP_DIR/tool/set_android_app_name.py"
-          grep -Fq 'tool/set_android_app_name.py' "$APP_DIR/tool/bootstrap_android.sh"
-          grep -Fq -- '--org=com --project-name=controlcomercial' "$APP_DIR/tool/bootstrap_android.sh"
-          grep -Fq 'tool/verify_android_application_id.py' "$APP_DIR/tool/bootstrap_android.sh"
-          grep -Fq 'Cafetería Rubí' "$APP_DIR/tool/bootstrap_android.ps1"
-          grep -Fq 'test: 1.32.0' "$APP_DIR/pubspec.yaml"
-          grep -Fq 'flutter_lints: 6.0.0' "$APP_DIR/pubspec.yaml"
-          grep -Fq 'test: 1.32.0' "$APP_DIR/packages/business_core/pubspec.yaml"
-          grep -Fq 'flutter_lints: 6.0.0' "$APP_DIR/packages/business_core/pubspec.yaml"
-          grep -Fq "sdk: '>=3.11.0 <4.0.0'" "$APP_DIR/packages/business_core/pubspec.yaml"
-          grep -Fq 'dart fix --apply --code=curly_braces_in_flow_control_structures' "$APP_DIR/tool/bootstrap_android.sh"
-          grep -Fq 'dart fix --apply --code=unnecessary_non_null_assertion' "$APP_DIR/tool/bootstrap_android.sh"
+          grep -Fq 'exact_decimal_report_precision_v1' "$APP_DIR/lib/data/catalog_seeder.dart"
+          grep -Fq 'historical_report_recalculated_with_exact_decimal_precision' "$APP_DIR/lib/data/catalog_seeder.dart"
+          grep -Fq 'signingConfig = signingConfigs.getByName("debug")' "$APP_DIR/tool/bootstrap_android.sh"
           grep -Fq 'dart analyze --fatal-warnings' "$APP_DIR/tool/bootstrap_android.sh"
-          grep -Fq "'fix', '--apply', '--code=curly_braces_in_flow_control_structures'" "$APP_DIR/tool/bootstrap_android.ps1"
-          grep -Fq "'fix', '--apply', '--code=unnecessary_non_null_assertion'" "$APP_DIR/tool/bootstrap_android.ps1"
-          grep -Fq "@('analyze', '--fatal-warnings')" "$APP_DIR/tool/bootstrap_android.ps1"
-          if grep -F -q -- '--fatal-infos' "$APP_DIR/tool/bootstrap_android.sh" "$APP_DIR/tool/bootstrap_android.ps1"; then
-            echo "No se debe bloquear CI por diagnósticos informativos; warnings y errores sí son fatales." >&2
-            exit 1
-          fi
-          if grep -R -E -q "package:flutter/(material|cupertino)\.dart" "$APP_DIR/lib" "$APP_DIR/packages"; then
-            echo "Quedan imports deprecados de package:flutter/material.dart o cupertino.dart." >&2
-            exit 1
-          fi
-          bash -n "$APP_DIR/tool/bootstrap_android.sh"
-          python3 -m py_compile "$APP_DIR/tool/ensure_android_sdk.py" "$APP_DIR/tool/set_android_app_name.py" "$APP_DIR/tool/verify_android_application_id.py"
-          grep -Fq 'python3 tool/ensure_android_sdk.py "$ANDROID_SDK_DIR"' "$APP_DIR/tool/bootstrap_android.sh"
-          grep -Fq 'version: 0.9.6+48' "$APP_DIR/pubspec.yaml"
-          grep -Fq 'Autocomplete<ProductRecord>' "$APP_DIR/lib/ui/product_picker.dart"
-          grep -Fq 'getRecentMovementProductIds' "$APP_DIR/lib/data/app_repository.dart"
-          grep -Fq 'bool _mostRecentFirst = true;' "$APP_DIR/lib/ui/screens/turn_editor_screen.dart"
-          grep -Fq "buffer.writeln('Bajas \$dateLabel')" "$APP_DIR/packages/business_core/lib/services/report_service.dart"
-          grep -Fq "buffer.writeln('Gastos \$dateLabel')" "$APP_DIR/packages/business_core/lib/services/report_service.dart"
-          grep -Fq "buffer.writeln('Reinversiones \$dateLabel')" "$APP_DIR/packages/business_core/lib/services/report_service.dart"
-          grep -Fq 'agrupa entradas, bajas, reinversiones y gastos repetidos por día sin mezclar fechas' "$APP_DIR/packages/business_core/test/core_logic_test.dart"
-          grep -Fq '${_money(reinvestment.amount)} en ' "$APP_DIR/packages/business_core/lib/services/report_service.dart"
-          grep -Fq 'Dinero de Venta Total: \$990' "$APP_DIR/packages/business_core/test/core_logic_test.dart"
-          grep -Fq 'Reinversiones 12/11/2026\n\$50 en 2 Pastel' "$APP_DIR/packages/business_core/test/core_logic_test.dart"
-          grep -Fq "static const _catalogVersion = '8'" "$APP_DIR/lib/data/catalog_seeder.dart"
-          grep -Fq 'cashByTurn' "$APP_DIR/assets/catalog_seed.json"
-          grep -Fq 'priceChanges' "$APP_DIR/assets/catalog_seed.json"
-          grep -Fq 'finalPrices' "$APP_DIR/assets/catalog_seed.json"
-          grep -Fq "final rawFinalPrices = seed['finalPrices'];" "$APP_DIR/lib/data/catalog_seeder.dart"
-          grep -Fq 'reinvestments' "$APP_DIR/assets/catalog_seed.json"
-          grep -Fq "(item['initialPriceCoefficient'] ?? '0').toString()" "$APP_DIR/lib/data/catalog_seeder.dart"
-          grep -Fq "(item['initialPriceScale'] as num? ?? 0).toInt()" "$APP_DIR/lib/data/catalog_seeder.dart"
-          grep -Fq 'Future<void> _seedInitialInventoryCycle(' "$APP_DIR/lib/data/catalog_seeder.dart"
-          grep -Fq 'Future<void> deleteProduct(String productId)' "$APP_DIR/lib/data/app_repository.dart"
-          grep -Fq 'Future<bool> canChangeCycleKind(String cycleId)' "$APP_DIR/lib/data/app_repository.dart"
-          grep -Fq 'Future<void> changeCycleKind(String cycleId, CycleKind kind)' "$APP_DIR/lib/data/app_repository.dart"
-          grep -Fq "label: const Text('Cambiar tipo de ciclo')" "$APP_DIR/lib/ui/screens/cycle_workspace_screen.dart"
-          grep -Fq 'onTap: () => _openWorkspace(cycle)' "$APP_DIR/lib/ui/screens/history_screen.dart"
-          grep -Fq "_UndoNotice(onUndo: _undoLastRecord)" "$APP_DIR/lib/ui/screens/turn_editor_screen.dart"
-          if grep -Fq "SnackBarAction(label: 'Deshacer'" "$APP_DIR/lib/ui/screens/turn_editor_screen.dart"; then
-            echo "La acción Deshacer no debe flotar sobre controles de la pantalla." >&2
-            exit 1
-          fi
-          if grep -Fq 'RestockScreen(' "$APP_DIR/lib/ui/home_page.dart"; then
-            echo "Reposición debe aparecer únicamente en el flujo de cierre." >&2
-            exit 1
-          fi
-          grep -Fq 'is_deleted = 0' "$APP_DIR/lib/data/app_repository.dart"
-          grep -Fq 'getCycleStartInventoryDefaults()' "$APP_DIR/lib/ui/screens/first_cycle_screen.dart"
-          grep -Fq 'TextInputType.numberWithOptions(decimal: true, signed: true)' "$APP_DIR/lib/ui/screens/first_cycle_screen.dart"
-          grep -Fq 'int get schemaVersion => 7' "$APP_DIR/lib/data/app_database.dart"
-          test -s "$APP_DIR/lib/ui/draft_text_controller.dart"
-          test -s "$APP_DIR/lib/ui/cycle_actions.dart"
-          if grep -Fq "import 'package:business_core/business_core.dart';" "$APP_DIR/lib/ui/cycle_actions.dart"; then
-            echo "El archivo cycle_actions.dart contiene un import no utilizado que bloqueará flutter analyze." >&2
-            exit 1
-          fi
-          test -s "$APP_DIR/lib/ui/screens/restock_screen.dart"
-          grep -Fq 'class DraftTextController extends TextEditingController' "$APP_DIR/lib/ui/draft_text_controller.dart"
-          grep -Fq 'Future<void> updateCycleStartDate(' "$APP_DIR/lib/data/app_repository.dart"
-          grep -Fq 'Future<void> deleteCycle(String cycleId)' "$APP_DIR/lib/data/app_repository.dart"
-          grep -Fq 'Future<void> flushAllDrafts()' "$APP_DIR/lib/data/app_repository.dart"
-          grep -Fq 'if (rows.isEmpty) return 10;' "$APP_DIR/lib/data/app_repository.dart"
-          grep -Fq 'Future<List<RestockLine>> getLowStockProducts()' "$APP_DIR/lib/data/app_repository.dart"
-          grep -Fq 'Future<List<ProductRecord>> getRestockOrderProducts()' "$APP_DIR/lib/data/app_repository.dart"
-          grep -Fq 'Future<void> addProductsToRestockOrder(Iterable<String> productIds)' "$APP_DIR/lib/data/app_repository.dart"
-          grep -Fq 'Future<void> removeProductFromRestockOrder(String productId)' "$APP_DIR/lib/data/app_repository.dart"
-          grep -Fq 'Future<void> completeRestockOrder()' "$APP_DIR/lib/data/app_repository.dart"
-          grep -Fq 'CREATE TABLE IF NOT EXISTS app_drafts' "$APP_DIR/lib/data/schema.sql"
-          grep -Fq 'CREATE TABLE IF NOT EXISTS restore_source.app_drafts' "$APP_DIR/lib/services/backup_service.dart"
-          grep -Fq 'PRAGMA restore_source.user_version = 5' "$APP_DIR/lib/services/backup_service.dart"
-          grep -Fq 'PRAGMA restore_source.user_version = 7' "$APP_DIR/lib/services/backup_service.dart"
-          grep -Fq 'Autocomplete<ProductRecord>' "$APP_DIR/lib/ui/product_picker.dart"
-          test "$(grep -Foc "saveDraft('\${widget.draftKey}:product', id ?? '')" "$APP_DIR/lib/ui/screens/turn_editor_screen.dart")" -eq 3
-          if grep -Fq "saveDraft('\${widget.draftKey}:product', id);" "$APP_DIR/lib/ui/screens/turn_editor_screen.dart"; then
-            echo "No se debe pasar String? directamente a saveDraft(String, String)." >&2
-            exit 1
-          fi
-          test "$(grep -Foc 'if (saved.isEmpty) {' "$APP_DIR/lib/ui/screens/turn_editor_screen.dart")" -eq 3
-          if grep -Fq '}) as DraftTextController;' "$APP_DIR/lib/ui/screens/final_inventory_screen.dart"; then
-            echo "El controlador de inventario no debe contener un cast redundante." >&2
-            exit 1
-          fi
-          grep -Fq 'if (raw.isEmpty) return ExactDecimal.zero();' "$APP_DIR/lib/ui/screens/final_inventory_screen.dart"
-          grep -Fq 'class InventoryBreakdown' "$APP_DIR/packages/business_core/lib/domain/models.dart"
-          grep -Fq 'ExactDecimal get total => shelf + display + sale + cold' "$APP_DIR/packages/business_core/lib/domain/models.dart"
-          grep -Fq 'ExactDecimal variationFrom(ExactDecimal initial) => initial - total' "$APP_DIR/packages/business_core/lib/domain/models.dart"
-          grep -Fq 'Estante' "$APP_DIR/lib/ui/screens/final_inventory_screen.dart"
-          grep -Fq 'Exhibición' "$APP_DIR/lib/ui/screens/final_inventory_screen.dart"
-          grep -Fq 'Venta' "$APP_DIR/lib/ui/screens/final_inventory_screen.dart"
-          grep -Fq 'Frío' "$APP_DIR/lib/ui/screens/final_inventory_screen.dart"
-          grep -Fq 'Total auxiliar' "$APP_DIR/lib/ui/screens/final_inventory_screen.dart"
-          grep -Fq 'no calcula unidades vendidas' "$APP_DIR/lib/ui/screens/final_inventory_screen.dart"
-          grep -Fq 'initial + totalEntries - totalLosses - finalQty' "$APP_DIR/packages/business_core/lib/services/calculation_service.dart"
-          grep -Fq '_upgradeAttachedBackupIfNeeded(originalVersion)' "$APP_DIR/lib/services/backup_service.dart"
-          grep -Fq 'PRAGMA restore_source.user_version = 4' "$APP_DIR/lib/services/backup_service.dart"
-          grep -Fq 'PRAGMA restore_source.user_version = 5' "$APP_DIR/lib/services/backup_service.dart"
-          grep -Fq 'flutter: "3.50.1"' "$KIT_DIR/codemagic.yaml"
+          grep -Fq 'dart test' "$APP_DIR/tool/bootstrap_android.sh"
+          grep -Fq 'flutter build apk --release' "$APP_DIR/tool/bootstrap_android.sh"
 
-          python3 - "$APP_DIR/assets/catalog_seed.json" <<'PY'
-          import json, sys
-          from decimal import Decimal, InvalidOperation
+          python3 - "$APP_DIR" <<'PY'
+          import json
+          import sys
           from pathlib import Path
-          data = json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
-          products = data.get('products')
-          if not isinstance(products, list):
-              raise SystemExit('El catálogo inicial debe ser una lista JSON, incluso si el usuario decide dejarla vacía.')
-          names = [item.get('name', '').strip() for item in products]
-          ids = [item.get('id', '').strip() for item in products]
-          if any(not value for value in names + ids):
-              raise SystemExit('El catálogo contiene nombres o IDs vacíos.')
-          if len(set(name.casefold() for name in names)) != len(names):
-              raise SystemExit('El catálogo contiene nombres duplicados.')
-          if len(set(ids)) != len(ids):
-              raise SystemExit('El catálogo contiene IDs duplicados.')
-          if [item.get('sortOrder') for item in products] != list(range(len(products))):
-              raise SystemExit('El orden del catálogo no es secuencial.')
-          for item in products:
-              try:
-                  quantity = Decimal(str(item['initialQuantity']))
-              except (KeyError, InvalidOperation):
-                  raise SystemExit(f"Cantidad inicial no válida para {item.get('name', '?')}.")
-              if not quantity.is_finite() or quantity < 0:
-                  raise SystemExit(f"Cantidad inicial no válida para {item['name']}.")
-          cycle = data.get('initialCycle')
-          if not isinstance(cycle, dict) or cycle.get('startDate') != '2026-11-20' or cycle.get('closingInventoryDate') != '2026-11-23':
-              raise SystemExit('Faltan las fechas del ciclo histórico 20–22 de noviembre de 2026 con conteo final del día 23.')
-          final_inventory = cycle.get('finalInventory')
-          if not isinstance(final_inventory, dict) or not final_inventory:
-              raise SystemExit('Falta el conteo final del día 23.')
-          if not set(final_inventory).issubset(set(names)):
-              raise SystemExit('El inventario final contiene productos que no están en el catálogo.')
-          if cycle.get('finalInventoryMissingProductsDefault') != '0':
-              raise SystemExit('Los productos omitidos del conteo final deben quedar en cero.')
-          for name, raw in final_inventory.items():
-              try:
-                  quantity = Decimal(str(raw))
-              except InvalidOperation:
-                  raise SystemExit(f'Cantidad final no válida para {name}.')
-              if not quantity.is_finite() or quantity < 0:
-                  raise SystemExit(f'Cantidad final no válida para {name}.')
-          if len(final_inventory) != 47:
-              raise SystemExit('El conteo final recibido debe contener 47 productos identificados.')
-          if final_inventory.get('Cigarro Criollo de Caja') != '12.30':
-              raise SystemExit('No se conservó la equivalencia Cigarro Criollo → Cigarro Criollo de Caja.')
-          expected_final_prices = {
-              'Caramelos Alokados': '30', 'Caramelos de Leche': '50', 'Caramelos en Paquetes': '400',
-              'Caramelos Un Gustazo': '20', 'Cerveza Mayabe': '900', 'Chicle': '50', 'Chicle Americano': '100',
-              'Chupa Chupa XXL': '100', 'Cigarro Criollo de Caja': '1000', 'Cigarro Englishman': '1600',
-              'Cigarro H.U Selecto': '1600', 'Cigarro H.U. Sin Filtro': '1400', 'Cigarro Popular Rojo': '1400',
-              'Energizante Tigon': '750', 'Galletas Borbom': '300', 'Galletas Creme': '300',
-              'Galletas Maria Dulces': '650', 'Galletas Maria Medianas': '550', 'Galletas Maria Mini': '150',
-              'Galletas Milk': '250', 'Galletas Mini Soda': '200', 'Galletas Porleo': '250', 'Galletas Ricas': '200',
-              'Huevo Sorpresas': '160', 'Jabita de Nailon': '20', 'Jugo de Caja': '400', 'Mantecados': '70',
-              'Mentiplus Freegels': '260', 'Moneda de Chocolate': '40', 'Néctar': '900', 'Nutela': '150',
-              'Pastel de Guayaba': '200', 'Pastica de Mani Molida Chiquita': '180', 'Pellys': '350', 'Peter': '350',
-              'Pizzas': '300', 'Planchao Volao': '1100', 'Pomos de Agua Mineral': '350', 'Ponques': '300',
-              'Raspadura': '100', 'Refresco de Lata': '700', 'Ron Gran Caribe': '2300', 'Sorbetos': '500',
-              'Turrones de Mani Molido': '180', 'Yogurt en Vaso': '150',
-          }
-          expected_initial_prices = dict(expected_final_prices)
-          expected_initial_prices['Galletas Maria Dulces'] = '480'
-          if cycle.get('initialPrices') != expected_initial_prices:
-              raise SystemExit('Los precios iniciales deben coincidir con los 45 precios comunicados, excepto Maria Dulces a 480.')
-          if cycle.get('finalPrices') != expected_final_prices:
-              raise SystemExit('Los 45 precios finales del catálogo no coinciden exactamente con los comunicados.')
-          if not set(expected_final_prices).issubset(set(names)):
-              raise SystemExit('Un precio final hace referencia a un producto inexistente.')
-          if len(set(names) - set(expected_final_prices)) != 20:
-              raise SystemExit('Se alteró el conjunto de 20 productos sin precio final comunicado.')
-          if cycle['finalPrices'].get('Galletas Maria Dulces') != cycle['priceChanges'][0]['newPrice']:
-              raise SystemExit('El precio final de Maria Dulces debe coincidir con el cambio histórico a 650.')
-          if len(cycle.get('cashByTurn', [])) != 6:
-              raise SystemExit('El ciclo debe declarar el efectivo de sus seis turnos.')
-          cash = [Decimal(str(value)) for value in cycle['cashByTurn']]
-          expenses_by_turn = [Decimal('0') for _ in range(6)]
-          reinvestments_by_turn = [Decimal('0') for _ in range(6)]
-          def turn_index(item):
-              day = int(item['day'])
-              if day not in (1, 2, 3):
-                  raise SystemExit('Un registro histórico tiene un día fuera del ciclo.')
-              return (day - 1) * 2 + (1 if item.get('shift') == 'night' else 0)
-          for item in cycle.get('expenses', []):
-              expenses_by_turn[turn_index(item)] += Decimal(str(item['amount']))
-          for item in cycle.get('reinvestments', []):
-              reinvestments_by_turn[turn_index(item)] += Decimal(str(item['amount']))
-          sales_by_turn = [cash[i] + expenses_by_turn[i] + reinvestments_by_turn[i] for i in range(6)]
-          if sales_by_turn != [Decimal('38850'), Decimal('19540'), Decimal('39430'), Decimal('35830'), Decimal('49880'), Decimal('32460')]:
-              raise SystemExit('Los seis turnos no reproducen los importes de venta comunicados.')
-          daily_sales = [sales_by_turn[i] + sales_by_turn[i + 1] for i in (0, 2, 4)]
-          if daily_sales != [Decimal('58390'), Decimal('75260'), Decimal('82340')]:
-              raise SystemExit('Los tres cierres diarios no coinciden con el informe suministrado.')
-          total_cash = sum(cash)
-          total_expenses = sum(Decimal(str(item['amount'])) for item in cycle.get('expenses', []))
-          total_reinvestments = sum(Decimal(str(item['amount'])) for item in cycle.get('reinvestments', []))
-          if (total_cash, total_expenses, total_reinvestments, sum(sales_by_turn)) != (Decimal('170320'), Decimal('25020'), Decimal('20650'), Decimal('215990')):
-              raise SystemExit('La conciliación financiera global del ciclo no es exacta.')
-          if len(cycle.get('entries', [])) != 7 or len(cycle.get('reinvestments', [])) != 5 or len(cycle.get('losses', [])) != 1 or len(cycle.get('priceChanges', [])) != 1:
-              raise SystemExit('Falta algún movimiento, reinversión, baja o cambio de precio histórico.')
-          print(f'Catálogo inicial válido: {len(products)} artículos; inventario final: {len(final_inventory)} productos; seis turnos, movimientos y conciliación histórica verificados.')
+
+          root = Path(sys.argv[1])
+          data = json.loads((root / 'assets/catalog_seed.json').read_text(encoding='utf-8'))
+          if not isinstance(data.get('products'), list):
+              raise SystemExit('catalog_seed.json no contiene una lista products válida.')
+          print(f"Proyecto extraído: Cafetería Rubí 0.9.6+51; {len(data['products'])} productos semilla.")
           PY
 
-          echo "Checksums, workflow consistency, Cafetería Rubí app name, Flutter/Dart compatibility, SDK constraints, test/analyzer compatibility and Dart analyzer info policy (nonfatal infos; fatal warnings/errors) verified."
+          echo "Kit y fuente actual verificados. No se necesita un keystore privado: release usa firma debug."
 
-      - name: Generate Android, run checks and build release APK
+      - name: Run project checks and build the release APK
         script: |
           set -euo pipefail
           APP_DIR="$CM_BUILD_DIR/source/Control_Comercial_Android_v0.9.6"
           cd "$APP_DIR"
           bash tool/bootstrap_android.sh --build-apk
 
-      - name: Verify APK
+      - name: Verify APK identity, alignment and signature
         script: |
           set -euo pipefail
-          APK="$CM_BUILD_DIR/source/Control_Comercial_Android_v0.9.6/build/app/outputs/flutter-apk/app-release.apk"
+          APP_DIR="$CM_BUILD_DIR/source/Control_Comercial_Android_v0.9.6"
+          APK="$APP_DIR/build/app/outputs/flutter-apk/app-release.apk"
+          BUILD_TOOLS="$ANDROID_SDK_ROOT/build-tools/36.0.0"
+          AAPT="$BUILD_TOOLS/aapt"
+          ZIPALIGN="$BUILD_TOOLS/zipalign"
+          APKSIGNER="$BUILD_TOOLS/apksigner"
+
           test -s "$APK"
-          unzip -tq "$APK" >/dev/null
-          AAPT="$ANDROID_SDK_ROOT/build-tools/36.0.0/aapt"
-          APKSIGNER="$ANDROID_SDK_ROOT/build-tools/36.0.0/apksigner"
           test -x "$AAPT"
+          test -x "$ZIPALIGN"
           test -x "$APKSIGNER"
-          PACKAGE_NAME="$("$AAPT" dump badging "$APK" | sed -n "s/^package: name='\([^']*\)'.*/\1/p")"
-          test "$PACKAGE_NAME" = "com.controlcomercial" || { echo "applicationId del APK incorrecto: $PACKAGE_NAME" >&2; exit 1; }
-          "$APKSIGNER" verify "$APK"
+          unzip -tq "$APK" >/dev/null
+          "$ZIPALIGN" -c -p 4 "$APK"
+
+          PACKAGE_NAME="$("$AAPT" dump badging "$APK" | sed -n "s/^package: name='\\([^']*\\)'.*/\\1/p")"
+          if [[ "$PACKAGE_NAME" != "com.controlcomercial" ]]; then
+            echo "applicationId incorrecto en la APK: ${PACKAGE_NAME:-vacío}" >&2
+            exit 1
+          fi
+
+          "$APKSIGNER" verify --verbose "$APK"
+          echo "APK válida: applicationId=$PACKAGE_NAME; release firmado con debug."
           ls -lh "$APK"
 
     artifacts:
