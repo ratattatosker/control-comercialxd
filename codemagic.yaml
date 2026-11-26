@@ -54,18 +54,20 @@ workflows:
           test -s "$APP_DIR/packages/business_core/lib/services/calculation_service.dart"
           test -s "$APP_DIR/packages/business_core/test/core_logic_test.dart"
           test -s "$APP_DIR/packages/business_core/test/reconciliation_test.dart"
+          test -s "$APP_DIR/test/data/app_repository_sqlite_test.dart"
           test -s "$APP_DIR/tool/bootstrap_android.sh"
           test -s "$APP_DIR/tool/ensure_android_sdk.py"
           test -s "$APP_DIR/tool/verify_android_application_id.py"
           test -s "$APP_DIR/tool/verify_reference_rules.py"
 
-          grep -Fq 'version: 0.9.6+52' "$APP_DIR/pubspec.yaml"
+          grep -Fq 'version: 0.9.6+53' "$APP_DIR/pubspec.yaml"
           grep -Fq "sdk: '>=3.11.0 <4.0.0'" "$APP_DIR/pubspec.yaml"
           grep -Fq 'exact_decimal_report_precision_v1' "$APP_DIR/lib/data/catalog_seeder.dart"
           grep -Fq 'historical_report_recalculated_with_exact_decimal_precision' "$APP_DIR/lib/data/catalog_seeder.dart"
           grep -Fq 'signingConfig = signingConfigs.getByName("debug")' "$APP_DIR/tool/bootstrap_android.sh"
           grep -Fq 'dart analyze --fatal-warnings' "$APP_DIR/tool/bootstrap_android.sh"
           grep -Fq 'dart test' "$APP_DIR/tool/bootstrap_android.sh"
+          grep -Fq 'flutter test --no-pub' "$APP_DIR/tool/bootstrap_android.sh"
           grep -Fq 'flutter build apk --release' "$APP_DIR/tool/bootstrap_android.sh"
 
           python3 - "$APP_DIR" <<'PY'
@@ -77,7 +79,7 @@ workflows:
           data = json.loads((root / 'assets/catalog_seed.json').read_text(encoding='utf-8'))
           if not isinstance(data.get('products'), list):
               raise SystemExit('catalog_seed.json no contiene una lista products válida.')
-          print(f"Proyecto extraído: Cafetería Rubí 0.9.6+52; {len(data['products'])} productos semilla.")
+          print(f"Proyecto extraído: Cafetería Rubí 0.9.6+53; {len(data['products'])} productos semilla.")
           PY
 
           echo "Kit y fuente actual verificados. No se necesita un keystore privado: release usa firma debug."
